@@ -84,7 +84,7 @@ ax.add_feature(cfeature.COASTLINE, linewidth=1)
 
 wind_contour = ax.contourf(lon ,lat, wind_magnitude, cmap='jet',
                  levels=magnitude_levels,
-                 extend='max', transform=ccrs.PlateCarree())
+                 extend='both', transform=ccrs.PlateCarree())
 #tiler = cimgt.GoogleTiles(style='satellite')
 #ax.add_image(tiler,6) # Aumentar o valor, aumenta a resolução
 
