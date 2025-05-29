@@ -71,7 +71,7 @@ hum_g = kg_to_g(da_q)
 
 wind_magnitude = np.sqrt(da_u**2 + da_v**2)
 
-data = '2023-09-14'
+data = '2023-09-04'
 wind_selected = wind_magnitude.sel(valid_time=data, pressure_level=850)
 q_selected = hum_g.sel(valid_time=data, pressure_level=850)
 
@@ -94,7 +94,7 @@ ax.add_feature(cfeature.COASTLINE)
 ax.set_extent([-20, -80, -50, 0], crs=ccrs.PlateCarree())
 
 hum_contour = ax.contourf(da_q.longitude, da_q.latitude, q_selected, levels=magnitude_levels,
-                           cmap='Blues', extend='max', transform=ccrs.PlateCarree())
+                           cmap='Blues', extend='both', transform=ccrs.PlateCarree())
 
 pular = 6
 ax.quiver(
