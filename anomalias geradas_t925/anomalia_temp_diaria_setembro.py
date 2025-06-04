@@ -14,7 +14,7 @@ import pandas as pd
 import scipy
 from netCDF4 import Dataset
 
-tempnetcdf = Dataset('C:/Users/Bolsista/Desktop/Federico/IC_CHICO/ERA5/Temperatura (925 hPa)/era5_temp_clim_september.nc')
+tempnetcdf = Dataset('C:/Users/Aluno/Desktop/Federico/Graduacao_Federico/IC_CHICO/ERA5/Anomalias_diarias/Temperatura (925 hPa)/era5_temp_clim_september.nc')
 tempnetcdf
 
 ds_temp = xr.open_dataset(xr.backends.NetCDF4DataStore(tempnetcdf))
@@ -42,12 +42,12 @@ clim_month_weighted = clim_month.weighted(weights)
 mean = clim_month_weighted.mean(["longitude", "latitude"])
 anom_daily = da.groupby('valid_time.month') - clim_month
 
-anom_desired = anom_daily.sel(valid_time='2024-09-25', pressure_level=925)
+anom_desired = anom_daily.sel(valid_time='2023-09-14', pressure_level=925)
 
 lon = anom_desired.longitude
 lat = anom_desired.latitude
 
-magnitude_levels = np.linspace(-10, 10, 22)
+magnitude_levels = np.linspace(-12, 12, 13)
 
 #temp_magnitude = anom_desired > 
 
@@ -55,7 +55,7 @@ fig, ax = plt.subplots(1, 1, figsize = (10, 8), subplot_kw={'projection': ccrs.P
 
 ax.add_feature(cfeature.BORDERS, linestyle='-', linewidth=1)
 ax.add_feature(cfeature.COASTLINE, linewidth=1)
-ax.set_title('Anomalia de temperatura 925 hPa - (1991-2020)')
+#ax.set_title('Anomalia de temperatura 925 hPa - (1991-2020)')
 
 temp_contour = ax.contourf(lon ,lat, anom_desired, cmap='coolwarm',
                  levels=magnitude_levels,
@@ -69,11 +69,10 @@ ax.add_image(tiler,6) # Aumentar o valor, aumenta a resolução
 ax.gridlines(draw_labels=dict(left=True, bottom=True, top=False, right=False),
               linewidth=1, color='gray', alpha=0.5, linestyle='--', transform=ccrs.PlateCarree())
 
-#ax.set_extent([-20, -80, -50, 0], crs=ccrs.PlateCarree())   
-ax.set_extent([-15, -105, 10, -90], crs=ccrs.PlateCarree())
-ax.plot(-51.12, -30.02, marker='o', color='yellow', markersize=7, alpha=0.7)
+ax.set_extent([-20, -80, -80, 0], crs=ccrs.PlateCarree())
+ax.plot(-51.12, -30.02, marker='o', color='red', markersize=7, alpha=0.7)
 
 # Barra de cores
-colorbar_ticks = np.linspace(-10,10,10)
-colorbar = plt.colorbar(temp_contour, ticks=colorbar_ticks)
+colorbar_ticks = np.linspace(-12,12,7)
+colorbar = plt.colorbar(temp_contour, ticks=colorbar_ticks, orientation='horizontal', pad=0.1, aspect=40, shrink=0.7)
 colorbar.set_label('°C',size=20)
