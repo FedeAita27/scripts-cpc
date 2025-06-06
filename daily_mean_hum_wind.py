@@ -114,6 +114,22 @@ ax.annotate('Umidade da Amazônia',
                       edgecolor='gray', 
                       alpha=0.8))
 
+ax.annotate('Ar polar',
+            xy=(-60, -32),        # ponto final da seta
+            xytext=(-65, -42),    # ponto de início (onde estará o texto)
+            arrowprops=dict(arrowstyle='->',
+                            connectionstyle="arc3,rad=-0.3",
+                            linewidth=2,
+                            color='green'),
+            fontsize=16,
+            ha='center',
+            color='black',
+            bbox=dict(boxstyle='round,pad=0.3', 
+                      facecolor='white', 
+                      edgecolor='gray', 
+                      alpha=0.8))
+
+
 
 #wind_contour = ax.contourf(wind_magnitude.longitude, wind_magnitude.latitude, wind_selected,
  #                          levels=magnitude_levels, cmap='jet', extend='both', transform=ccrs.PlateCarree())
