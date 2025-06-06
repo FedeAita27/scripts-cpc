@@ -9,6 +9,8 @@ import numpy as np
 import pandas as pd
 import cdsapi
 import zipfile
+from matplotlib.lines import Line2D
+
 
 dataset = "derived-era5-pressure-levels-daily-statistics"
 request = {
@@ -119,7 +121,7 @@ ax.annotate('Ar polar',
             xytext=(-65, -42),    # ponto de início (onde estará o texto)
             arrowprops=dict(arrowstyle='->',
                             connectionstyle="arc3,rad=-0.3",
-                            linewidth=2,
+                            linewidth=5,
                             color='green'),
             fontsize=16,
             ha='center',
@@ -129,6 +131,10 @@ ax.annotate('Ar polar',
                       edgecolor='gray', 
                       alpha=0.8))
 
+legend_elements = [
+    Line2D([0], [0], color='black', lw=3, label='5 ≤ Vento < 12 m/s'),
+    Line2D([0], [0], color='red', lw=3, label='Vento ≥ 12 m/s')
+]
 
 
 #wind_contour = ax.contourf(wind_magnitude.longitude, wind_magnitude.latitude, wind_selected,
@@ -157,6 +163,7 @@ ax.quiver(
 ax.gridlines(draw_labels=dict(left=True, bottom=True, top=False, right=False),
               linewidth=1, color='gray', alpha=0.5, linestyle='--', transform=ccrs.PlateCarree())
 
+ax.legend(handles=legend_elements, loc='upper right', fontsize=12, frameon=True)
 colorbar_ticks = np.linspace(0,16,7)
 colorbar = plt.colorbar(hum_contour, ticks=colorbar_ticks, orientation='vertical')
 colorbar.set_label('g kg-¹',size=18)
