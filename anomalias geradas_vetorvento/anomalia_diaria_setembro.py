@@ -15,13 +15,14 @@ import pandas as pd
 import scipy
 from netCDF4 import Dataset
 
-windnetcdf4 = Dataset("C:/Users/Aluno/Desktop/Federico/Graduacao_Federico/IC_CHICO/ERA5/Anomalias_diarias/Vetor vento (850 e 200 hPa)/era5_clim_september.nc")
+windnetcdf4 = Dataset("C:/Users/Federico/Downloads/60449d9760b70d984871fa2f7e6f6a1b.nc")
 windnetcdf4
+
 
 ds_wind=xr.open_dataset(xr.backends.NetCDF4DataStore(windnetcdf4))
 ds_wind
 
-#ds_wind_180 = ds_wind.assign_coords(longitude=(((ds_wind.longitude + 180) % 360) - 180)).sortby('longitude')
+ds_wind_180 = ds_wind.assign_coords(longitude=(((ds_wind.longitude + 180) % 360) - 180)).sortby('longitude')
 
 
 da_v = ds_wind['v']
@@ -57,37 +58,36 @@ anom_daily_U = da_u.groupby('valid_time.month') - clim_month_U
 anom_daily_U
 anom_daily_V[1038]
 anom_daily_U[1038]
-anom_desired_V = anom_daily_V.sel(valid_time='2023-09-03')
-anom_desired_U = anom_daily_U.sel(valid_time='2023-09-03')
-anom_required_V = anom_desired_V.sel(pressure_level=850)
-anom_required_U = anom_desired_U.sel(pressure_level=850)
+anom_desired_V = anom_daily_V.sel(valid_time='2023-09-06', pressure_level=850)
+anom_desired_U = anom_daily_U.sel(valid_time='2023-09-06', pressure_level=850)
 
 title_data = '2023-09-03'
 
-wind_magnitude = np.sqrt(anom_required_U**2 + anom_required_V**2) # Cálculo de velocidade do vento
-
+wind_magnitude = np.sqrt(anom_desired_U**2 + anom_desired_V**2) # Cálculo de velocidade do vento
+wind_magnitude_desired = wind_magnitude.sel(pressure_level=850)
 
 mask = wind_magnitude > 5
-U_filtrado = anom_required_U.where(mask)
-V_filtrado = anom_required_V.where(mask)
+U_filtrado = anom_desired_U.where(mask)
+V_filtrado = anom_desired_V.where(mask)
 
-lon = wind_magnitude.longitude
-lat = wind_magnitude.latitude
+lon = wind_magnitude_desired.longitude
+lat = wind_magnitude_desired.latitude
 
-magnitude_levels = np.linspace(10,45,15)
+magnitude_levels = np.linspace(5,35,13)
 
 
-fig, ax = plt.subplots(1, 1, figsize = (10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+fig, ax = plt.subplots(1,1,figsize = (10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
 
 ax.add_feature(cfeature.BORDERS, linestyle='-', linewidth=1)
 ax.add_feature(cfeature.COASTLINE, linewidth=1)
 ax.set_title(f"Anomalia de vetor vento - {title_data}")
 
-wind_contour = ax.contourf(lon ,lat, wind_magnitude, cmap='jet',
+wind_contour = ax.contourf(lon ,lat, wind_magnitude_desired, cmap='jet',
                  levels=magnitude_levels,
                  extend='max', transform=ccrs.PlateCarree())
-tiler = cimgt.GoogleTiles(style='satellite')
-ax.add_image(tiler,6) # Aumentar o valor, aumenta a resolução
+
+#tiler = cimgt.GoogleTiles(style='satellite')
+#ax.add_image(tiler,6) # Aumentar o valor, aumenta a resolução
 
 pular=8
 ax.quiver(lon[::pular], lat[::pular], U_filtrado[::pular, ::pular].values,
@@ -102,7 +102,7 @@ ax.set_extent([-20, -80, -50, 0], crs=ccrs.PlateCarree())
 ax.plot(-51.12, -30.02, marker='o', color='yellow', markersize=7, alpha=0.7)
 
 # Barra de cores
-colorbar_ticks = np.linspace(10,45,8)
+colorbar_ticks = np.linspace(5,35,7)
 colorbar = plt.colorbar(wind_contour, ticks=colorbar_ticks)
-colorbar.set_label('m/s',size=20)
+colorbar.set_label('m s-¹',size=20)
 
