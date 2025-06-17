@@ -15,13 +15,14 @@ import pandas as pd
 import scipy
 from netCDF4 import Dataset
 
-windnetcdf4 = Dataset("C:/Users/Aluno/Desktop/Federico/Graduacao_Federico/IC_CHICO/ERA5/Anomalias_diarias/Vetor vento (850 e 200 hPa)/era5_clim_september.nc")
+windnetcdf4 = Dataset("C:/Users/Federico/Downloads/60449d9760b70d984871fa2f7e6f6a1b.nc")
 windnetcdf4
+
 
 ds_wind=xr.open_dataset(xr.backends.NetCDF4DataStore(windnetcdf4))
 ds_wind
 
-#ds_wind_180 = ds_wind.assign_coords(longitude=(((ds_wind.longitude + 180) % 360) - 180)).sortby('longitude')
+ds_wind_180 = ds_wind.assign_coords(longitude=(((ds_wind.longitude + 180) % 360) - 180)).sortby('longitude')
 
 
 da_v = ds_wind['v']
@@ -57,6 +58,7 @@ anom_daily_U = da_u.groupby('valid_time.month') - mean_U
 anom_daily_U
 anom_daily_V[1038]
 anom_daily_U[1038]
+
 anom_desired_V = anom_daily_V.sel(valid_time='2023-09-14', pressure_level=200)
 anom_desired_U = anom_daily_U.sel(valid_time='2023-09-14', pressure_level=200)
 
@@ -70,19 +72,20 @@ mask = wind_magnitude > 10
 U_filtrado = anom_desired_U.where(mask)
 V_filtrado = anom_desired_V.where(mask)
 
-lon = wind_magnitude.longitude
-lat = wind_magnitude.latitude
+lon = wind_magnitude_desired.longitude
+lat = wind_magnitude_desired.latitude
+
 
 magnitude_levels = np.linspace(10,70,13)
 
 
-fig, ax = plt.subplots(1, 1, figsize = (10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
+fig, ax = plt.subplots(1,1,figsize = (10, 8), subplot_kw={'projection': ccrs.PlateCarree()})
 
 ax.add_feature(cfeature.BORDERS, linestyle='-', linewidth=1)
 ax.add_feature(cfeature.COASTLINE, linewidth=1)
 #ax.set_title(f"Anomalia de vetor vento - {title_data}")
 
-wind_contour = ax.contourf(lon ,lat, wind_magnitude, cmap='jet',
+wind_contour = ax.contourf(lon ,lat, wind_magnitude_desired, cmap='jet',
                  levels=magnitude_levels,
                  extend='both', transform=ccrs.PlateCarree())
 #tiler = cimgt.GoogleTiles(style='satellite')
