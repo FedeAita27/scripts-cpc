@@ -20,6 +20,7 @@ request = {
     "product_type": ["monthly_averaged_reanalysis"],
     "variable": ["2m_temperature"],
     "year": [
+        "1988", "1989", "1990",
         "1991", "1992", "1993",
         "1994", "1995", "1996",
         "1997", "1998", "1999",
@@ -50,53 +51,24 @@ key= 'a9d91cd4-53fb-4494-a7b6-e4e7e67e0e2a'
 client = cdsapi.Client(url,key)
 client.retrieve(dataset, request).download()
 
-ds = xr.open_dataset('21f41d5647670f458bed39275816d72a.nc')
-
+ds = xr.open_dataset('758478d747afa9f806b08dcf651dac8a.nc')
+ds
 t2m = ds['t2m'] - 273.15 
 
-t2m_clim = t2m.sel(valid_time=slice("1982-01-01", "2023-12-01"))
+# Climatologia (1988–2023)
+climatologia = t2m.sel(valid_time=slice("1988-01-01", "2023-12-01")).mean("valid_time")
 
-# Calcular a média anual (climatologia por ano)
-climatologia1 = t2m_clim.groupby("valid_time.year").mean("valid_time")
-
-time_num = np.arange(len(t2m.valid_time))
-
-def regress(y):
-    slope, intercept, *_ = stats.linregress(time_num, y)
-    return y - (slope * time_num + intercept)
-
-t2m_detrended = xr.apply_ufunc(
-    regress,
-    t2m,
-    input_core_dims=[["valid_time"]],
-    output_core_dims=[["valid_time"]],
-    vectorize=True,
-    dask="parallelized",
-    output_dtypes=[t2m.dtype]
-)
-
-# 2. Climatologia (1982–2023)
-climatologia = t2m_detrended.sel(valid_time=slice("1991-01-01", "2020-12-01")).mean("valid_time")
-
-# 3. Média da década (1988–2000) — um único valor médio
-media_decada = t2m_detrended.sel(valid_time=slice("1988-01-01", "2000-12-01")).mean("valid_time")
-
-# 4. Anomalia decadal
-anomalia_decadal = media_decada - climatologia
-
-# 5. Plot
-shp_path = "C:/Users/Federico/Downloads/file_uh/UH.shp"
-shp_comunidades = "C:/Users/Federico/Downloads/Phinaya.shp"
+# Plot
+shp_path = "C:/Users/feder/OneDrive/Documentos/file_uh/UH.shp"
 
 gdf = gpd.read_file(shp_path)
-gdf_com = gpd.read_file(shp_comunidades)
 
 levels = np.linspace(-1.5, 1.5, 13)
 
 # Criar a figura com 3 subplots lado a lado
-for ano in range(1988, 2024):
+for ano in range(1985, 2024):
     # Média anual do ano específico
-    media_anual = t2m_detrended.sel(valid_time=slice(f"{ano}-01-01", f"{ano}-12-31")).mean("valid_time")
+    media_anual = t2m.sel(valid_time=slice(f"{ano}-01-01", f"{ano}-12-01")).mean("valid_time")
 
     # Anomalia anual
     anomalia_anual = media_anual - climatologia
