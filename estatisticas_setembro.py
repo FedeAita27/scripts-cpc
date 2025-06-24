@@ -35,6 +35,9 @@ request = {
         "850"
     ],
     "year": [
+        "1982", "1983", "1984",
+        "1985", "1986", "1987",
+        "1988", "1989", "1990",       
         "1991", "1992", "1993",
         "1994", "1995", "1996",
         "1997", "1998", "1999",
@@ -54,50 +57,58 @@ request = {
     "area": [-30, -180, -90, 180]
 }
 
-url='https://cds.climate.copernicus.eu/api'
-key='a9d91cd4-53fb-4494-a7b6-e4e7e67e0e2a'
+url='https://cds.climate.copernicus.eu/api' #TROCAR URL
+key='a9d91cd4-53fb-4494-a7b6-e4e7e67e0e2a'  #TROCAR KEY
 
 client = cdsapi.Client(url, key)
 client.retrieve(dataset, request).download()
 
-netcdf4 = Dataset('e372092be0038c9869bbd90fa30ba79c.nc')
+netcdf4 = Dataset('2d8a8c173de0968e1f44b3b856c54f31.nc')
 ds = xr.open_dataset(xr.backends.NetCDF4DataStore(netcdf4))
 
 ds_180 = ds.assign_coords(longitude=(((ds.longitude + 180) % 360) - 180)).sortby('longitude')
 
-da_v = ds_180['v']
+da_v = ds_180['v'].sel(pressure_level=850)
 
-# Climatologia 
-climatologia = da_v.sel(valid_time=slice('1991-09-01', '2020-09-01')).mean('valid_time')
+# climatologia de setembro de 1991 a 2020
+climatologia_set = da_v.sel(valid_time=da_v['valid_time'].dt.year.isin(range(1991, 2021)))
+climatologia= climatologia_set.mean(dim='valid_time')
+climatologia_std = climatologia_set.std(dim='valid_time')
 
-# Anos específicos
-anos = da_v.sel(valid_time=da_v['valid_time'].dt.year.isin([1982, 1997, 2015, 2023]))
+# Setembro de 2023
+set_2023 = da_v.sel(valid_time=da_v['valid_time'].dt.year == 2023)
 
-# Anomalias
-anomalias = anos - climatologia
+# Anomalia
+anomalia_2023 = set_2023 - climatologia
+
+
+# quão anômalo foi setembro de 2023 (z-score)
+z_score = anomalia_2023 / climatologia_std
+z_score_selected = z_score.sel(pressure_level=850)
 
 # Desvio padrão
-desv = anomalias.std(dim='valid_time')
-desv_850 = desv.sel(pressure_level=850)
-
-
-desv_selected = desv.sel(pressure_level=850)
-
-vmin = -3
-vmax = 3
-
-levels = np.linspace(vmin, vmax, 13)
+desv = anomalia_2023.std(dim='valid_time')
 
 fig, ax = plt.subplots(figsize=(16, 8), subplot_kw={'projection': ccrs.Orthographic(-30, -90)})
-
-cmap = plt.get_cmap('jet').copy()
 
 ax.add_feature(cfeature.COASTLINE, linewidth=0.8)
 ax.add_feature(cfeature.BORDERS, linestyle=':', linewidth=0.5)
 
-cf = ax.contourf(da_v.longitude, da_v.latitude, desv_selected,
-                 levels=levels, cmap=cmap,
+cf = ax.contourf(da_v.longitude, da_v.latitude, anomalia_2023.squeeze(),
+                 cmap="RdBu_r",
                  extend='both', transform=ccrs.PlateCarree())
+
+contours = ax.contour(
+    da_v.longitude,
+    da_v.latitude,
+    desv,
+    levels=[-2, 2],  
+    colors='black',
+    linewidths=5,
+    linestyles='--',
+    transform=ccrs.PlateCarree()
+)
+
 
 ax.gridlines(draw_labels=False, linewidth=0.5, color='gray', alpha=0.5)
 
